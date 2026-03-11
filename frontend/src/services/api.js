@@ -4,9 +4,23 @@
  */
 import axios from 'axios';
 
+// Determine API URL based on environment
+const getApiUrl = () => {
+  // Check for environment variable first
+  if (import.meta.env.VITE_API_URL) {
+    return import.meta.env.VITE_API_URL;
+  }
+  // Production: use deployed backend
+  if (import.meta.env.PROD) {
+    return 'https://backend-tau-eight-ey6kc1da3h.vercel.app/api';
+  }
+  // Development: use local backend
+  return 'http://localhost:5000/api';
+};
+
 // Configure axios instance
 const api = axios.create({
-  baseURL: import.meta.env.VITE_API_URL || '/api',
+  baseURL: getApiUrl(),
   timeout: 60000, // 60 second timeout for file uploads
   headers: {
     'Content-Type': 'application/json'
