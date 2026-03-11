@@ -39,15 +39,17 @@ const consoleFormat = winston.format.combine(
   })
 );
 
-// Create logger instance
-const logger = winston.createLogger({
-  level: config.nodeEnv === 'development' ? 'debug' : 'info',
-  format: logFormat,
-  transports: [
-    // Console transport
-    new winston.transports.Console({
-      format: config.nodeEnv === 'development' ? consoleFormat : logFormat
-    }),
+// Build transports array - file transports don't work on Vercel serverless
+const transports = [
+  // Console transport (always enabled)
+  new winston.transports.Console({
+    format: config.nodeEnv === 'development' ? consoleFormat : logFormat
+  })
+];
+
+// Add file transports only when NOT on Vercel (serverless has read-only filesystem)
+if (!process.env.VERCEL) {
+  transports.push(
     // File transport for errors
     new winston.transports.File({
       filename: 'logs/error.log',
@@ -61,7 +63,14 @@ const logger = winston.createLogger({
       maxsize: 5242880,
       maxFiles: 5
     })
-  ]
+  );
+}
+
+// Create logger instance
+const logger = winston.createLogger({
+  level: config.nodeEnv === 'development' ? 'debug' : 'info',
+  format: logFormat,
+  transports
 });
 
 // Helper methods for structured logging
